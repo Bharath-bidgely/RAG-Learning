@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # RAG Learning Environment
+  # ============================================================================
+  rag-learning:
+    build: .
+    container_name: rag-learning
+    volumes:
+      # Mount the entire project (so changes reflect immediately)
+      - .:/app
+      # Cache for Hugging Face models (so you don't re-download)
+      - huggingface-cache:/root/.cache/huggingface
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HOME=/root/.cache/huggingface
+    stdin_open: true
+    tty: true
+    command: bash
+
+  # ============================================================================
+  # ChromaDB (Vector Database) - For Lesson 4
+  # ============================================================================
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: rag-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb-data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+  # ============================================================================
+  # Ollama (Local LLM) - For Lesson 6 (Optional)
+  # ============================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    # Uncomment if you have GPU
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  huggingface-cache:
+  chromadb-data:
+  ollama-data:
+
